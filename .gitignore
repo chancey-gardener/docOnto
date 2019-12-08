@@ -1,0 +1,7 @@
+__pycache__/
+data/
+onto/*
+spacy_test.py
+test_regex.py
+tf_1.15.0/
+
