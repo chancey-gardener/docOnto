@@ -7,6 +7,7 @@ import logging
 from spacy.attrs import ORTH, DEP, POS, LEMMA, HEAD
 from spacy.pipeline import EntityRecognizer
 from text_sections import *
+from collections import Counter
 
 
 TEST_FILE = "data/tpp_fragment.txt"
@@ -37,12 +38,6 @@ class Article(IndexUnit):
 
     def __init__(self, header, text):
         super().__init__(header, text)
-        self.entities = set()
-        self.conditions = []
-
-    def _getEntities(self):
-        raise NotImplemented
-
 
 class Section(IndexUnit):
 
@@ -51,7 +46,6 @@ class Section(IndexUnit):
 
     def __init__(self, header, text):
         super().__init__(header, text)
-        # print("finished processing section: {}\n".format(header))
 
 
 class Chapter(IndexUnit):
@@ -60,7 +54,6 @@ class Chapter(IndexUnit):
     pattern = CHAPTER
 
     def __init__(self, header, text):
-        print("let's check this out")
         super().__init__(header, text)
 
 
@@ -69,21 +62,42 @@ class TppFull(IndexUnit):
     SubUnit = Chapter
 
     def __init__(self, text):
-        print(super())
-        IndexUnit.__init__(self, "TPP", text)
+        super().__init__("TPP", text)
 
 
+# TEST CODE
 
-# if __name__ == "__main__":
 with open(TEST_FILE) as tppfile:
     tpp = tppfile.read()
 
-
+print("\nprocessing TPP text")
 proc = TppFull(tpp)
+
 print("\n\n")
 print("Success!")
 print("\n\n\n")
 
+chapter = proc.chapter['1']
+sec = chapter.section['A']
+art = sec.article['1.2']
+par = art.paragraph['1']
 
-# art = sec.article['2.3']
-    # print(art.header, "\n", art.doc)
+root_hist = Counter()
+vb_hist = Counter()
+np_hist = Counter()
+
+print("\ngetting a few histograms..")
+for sent in proc.getFlatText():
+	nps = set(sent.noun_chunks)
+	np_hist.update(nps)
+	for tok in sent:
+		lem = tok.lemma_
+		pos = tok.pos_
+		dep = tok.dep_
+		if dep == "ROOT":
+			root_hist.update([lem])
+		if pos == "VERB":
+			vb_hist.update([lem])
+			
+
+print("DONE!")
